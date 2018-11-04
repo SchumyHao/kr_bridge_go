@@ -95,7 +95,6 @@ main()
 
 // main function
 function main () {
-  console.log(`Start app manager.`)
   console.log(`VERSION=${VERSION}`)
   start()
 }

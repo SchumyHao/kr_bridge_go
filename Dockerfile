@@ -10,4 +10,7 @@ COPY run.sh /usr/src/kr
 
 EXPOSE 8181
 
-CMD ["run.sh"]
+ENV KR_DATA_PATH=/config
+
+CMD ["/usr/src/kr/run.sh"]
+

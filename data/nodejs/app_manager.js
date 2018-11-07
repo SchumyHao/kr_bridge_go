@@ -42,23 +42,12 @@ var stateTrigger = {
 }
 var state = {
   'get': async (entityId, stateName) => {
-    var rst
-    var d = {
-      'entity_id': entityId,
-      'name': stateName
-    }
-    var id = sendCommand('getState', d)
-    try {
-      rst = await receiveResponse(id)
-    } catch (e) {
-      console.log(`ERROR: receive ping command ${id} failed. ${e.message}`)
-      return null
-    }
-    delete cmdResult[id]
-    if (rst.result === 'ok') {
-      return rst.message
-    } else {
-      return null
+    return await stateGet(entityId, stateName)
+  },
+  'compare': async (entityId, stateName, opt, targetValue, cb) => {
+    var stateValue = await stateGet(entityId, stateName)
+    if (stateCompare(stateValue, targetValue, opt)) {
+      await cb()
     }
   }
 }
@@ -97,6 +86,48 @@ main()
 function main () {
   console.log(`VERSION=${VERSION}`)
   start()
+}
+
+function formatValue(value) {
+  if (typeof(value) === "string") {
+    return value.toLowerCase()
+  } else if (typeof(value) === "number") {
+    return value.toString()
+  } else {
+    return value
+  }
+}
+
+function stateCompare(stateValue, targetValue, opt) {
+  switch(opt) {
+    case 'EQ': return formatValue(stateValue) == formatValue(targetValue)
+    case 'NEQ': return formatValue(stateValue) != formatValue(targetValue)
+    case 'GTE': return formatValue(stateValue) >= formatValue(targetValue)
+    case 'GT': return formatValue(stateValue) > formatValue(targetValue)
+    case 'LSE': return formatValue(stateValue) <= formatValue(targetValue)
+    case 'LS': return formatValue(stateValue) < formatValue(targetValue)
+  }
+}
+
+async function stateGet(entityId, stateName) {
+  var rst
+  var d = {
+    'entity_id': entityId,
+    'name': stateName
+  }
+  var id = sendCommand('getState', d)
+  try {
+    rst = await receiveResponse(id)
+  } catch (e) {
+    console.log(`ERROR: receive ping command ${id} failed. ${e.message}`)
+    return null
+  }
+  delete cmdResult[id]
+  if (rst.result === 'ok') {
+    return rst.message
+  } else {
+    return null
+  }
 }
 
 var clientDataBuffer
